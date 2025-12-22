@@ -7,7 +7,7 @@ import java.io.Serializable;
  *
  */
 public class Map implements Map2D, Serializable{
-
+private int [][] _map ;
     // edit this class below
 	/**
 	 * Constructs a w*h 2D raster map with an init value v.
@@ -16,7 +16,8 @@ public class Map implements Map2D, Serializable{
 	 * @param v
 	 */
 	public Map(int w, int h, int v) {init(w, h, v);}
-	/**
+
+    /**
 	 * Constructs a square map (size*size).
 	 * @param size
 	 */
@@ -31,17 +32,66 @@ public class Map implements Map2D, Serializable{
 	}
 	@Override
 	public void init(int w, int h, int v) {
+        if (w <= 0 || h <= 0) {
+            throw new IllegalArgumentException("Invalid map size");
+        }
 
+        this._map = new int[w][h];
+
+        for (int i = 0; i < w; i++) {
+            for (int j = 0; j < h; j++) {
+                this._map[i][j] = v;
+            }
+        }
 	}
 	@Override
 	public void init(int[][] arr) {
+        // check null
+        if (arr == null) {
+            throw new RuntimeException("Array is null");
+        }
 
-	}
+        // check empty array
+        if (arr.length == 0 || arr[0] == null || arr[0].length == 0) {
+            throw new RuntimeException("Array is empty");
+        }
+
+        int w = arr.length;
+        int h = arr[0].length;
+
+        // check ragged array
+        for (int i = 0; i < w; i++) {
+            if (arr[i] == null || arr[i].length != h) {
+                throw new RuntimeException("Ragged 2D array");
+            }
+        }
+
+        // deep copy
+        this._map = new int[w][h];
+        for (int i = 0; i < w; i++) {
+            for (int j = 0; j < h; j++) {
+                this._map[i][j] = arr[i][j];
+            }
+        }
+    }
 	@Override
 	public int[][] getMap() {
-		int[][] ans = null;
+        if (this._map == null) {
+            return null;
+        }
 
-		return ans;
+        int w = this.getWidth();
+        int h = this.getHeight();
+
+        int [][] deepCopy = new int[w][h];
+    for(int i=0; i<w;i++){
+        for(int j=0;j<h;j++){
+    deepCopy[i][j]= this._map[i][j];
+
+        }
+    }
+
+		return deepCopy;
 	}
 	@Override
 	public int getWidth() {
