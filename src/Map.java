@@ -33,7 +33,7 @@ private int [][] _map ;
 	@Override
 	public void init(int w, int h, int v) {
         if (w <= 0 || h <= 0) {
-            throw new IllegalArgumentException("Invalid map size");
+            throw new RuntimeException("Invalid map size");
         }
 
         this._map = new int[w][h];
@@ -95,74 +95,191 @@ private int [][] _map ;
 	}
 	@Override
 	public int getWidth() {
-        int ans = -1;
-
-        return ans;
+        return this._map.length;
     }
+
 	@Override
 	public int getHeight() {
-        int ans = -1;
-
-        return ans;
+        return this._map[0].length;
     }
+   // x are rows and y are columns
 	@Override
 	public int getPixel(int x, int y) {
-        int ans = -1;
-
-        return ans;
+        if(x<0 || y<0 || x>=this.getWidth() || y>= this.getHeight()){
+            throw new RuntimeException("out of bounds");
+        }
+        return this._map[x][y];
     }
 	@Override
 	public int getPixel(Pixel2D p) {
-        int ans = -1;
+        if (p==null) {
+            throw new RuntimeException("p is null");
+        }
+        if (p.getX() < 0 || p.getY() < 0 ||
+                p.getX() >= this.getWidth() || p.getY() >= this.getHeight()) {
+            throw new RuntimeException("Pixel out of bounds: " + p);
+        }
 
-        return ans;
-	}
+        // Index2D other = (Index2D) p;
+        return this._map[p.getX()][p.getY()];
+    }
+
 	@Override
 	public void setPixel(int x, int y, int v) {
 
+        if (_map == null) {
+            throw new RuntimeException("Map is not initialized");
+        }
+
+        if (x < 0 || y < 0 || x >= this.getWidth() || y >= this.getHeight()) {
+            throw new RuntimeException(
+                    "Pixel out of bounds: (" + x + "," + y + ")"
+            );
+        }
+
+        this._map[x][y] = v;
     }
+
 	@Override
 	public void setPixel(Pixel2D p, int v) {
-
+        if (p==null) {
+            throw new RuntimeException("p is null");
+        }
+        if (p.getX() < 0 || p.getY() < 0 ||
+                p.getX() >= this.getWidth() || p.getY() >= this.getHeight()) {
+            throw new RuntimeException("Pixel out of bounds: " + p);
+        }
+        this._map[p.getX()][p.getY()] = v;
 	}
 
     @Override
     public boolean isInside(Pixel2D p) {
-        boolean ans = true;
-
-        return ans;
+        if (p == null) {
+            throw new RuntimeException("p is null");
+        }
+        if (p.getX() < 0 || p.getY() < 0 ||
+                p.getX() >= getWidth() || p.getY() >= getHeight()) {
+            return false;
+        }
+        return true;
     }
-
     @Override
     public boolean sameDimensions(Map2D p) {
-        boolean ans = false;
+    if (p==null){
+        throw new RuntimeException("p is null");
+    }
+    int ph = p.getHeight();
+    int th = this.getHeight();
+    int pw = p.getWidth();
+    int tw = this.getWidth();
 
-        return ans;
+        return ph == th && pw == tw;
     }
 
     @Override
     public void addMap2D(Map2D p) {
-
+    if (!this.sameDimensions(p)){
+        return;
+    }
+        for(int x =0; x<this.getWidth();x++){
+            for(int y = 0;y<this.getHeight();y++){
+                this._map[x][y]+= p.getPixel(x,y);
+        }
+    }
     }
 
     @Override
     public void mul(double scalar) {
-
+        for(int x =0; x<this.getWidth();x++) {
+            for (int y = 0; y < this.getHeight(); y++) {
+                this._map[x][y] =(int)(this._map[x][y] * scalar);
+            }
+        }
     }
 
     @Override
     public void rescale(double sx, double sy) {
+        // 1) validate
+        if (sx <= 0 || sy <= 0) {
+            throw new IllegalArgumentException("Scale factors must be positive: sx=" + sx + ", sy=" + sy);
+        }
+        if (this._map == null) {
+            // אין מה לשנות
+            return;
+        }
 
+        int oldW = getWidth();
+        int oldH = getHeight();
+
+        // 2) compute new size (use round to match "100*1.2 = 120" nicely)
+        int newW = (int) Math.round(oldW * sx);
+        int newH = (int) Math.round(oldH * sy);
+
+        // avoid zero-sized maps
+        if (newW <= 0) newW = 1;
+        if (newH <= 0) newH = 1;
+
+        // 3) keep old data
+        int[][] oldMap = this._map; // אפשר גם getMap(), אבל זה יוצר העתקה מיותרת
+
+        // 4) allocate new map
+        int[][] newMap = new int[newW][newH];
+
+        // 5) nearest-neighbor mapping:
+        // new[x][y] comes from old[ floor(x/sx) ][ floor(y/sy) ]
+        // clamp to avoid out-of-bounds due to rounding edge cases
+        for (int x = 0; x < newW; x++) {
+            int ox = (int) Math.floor(x / sx);
+            if (ox < 0) ox = 0;
+            if (ox >= oldW) ox = oldW - 1;
+
+            for (int y = 0; y < newH; y++) {
+                int oy = (int) Math.floor(y / sy);
+                if (oy < 0) oy = 0;
+                if (oy >= oldH) oy = oldH - 1;
+
+                newMap[x][y] = oldMap[ox][oy];
+            }
+        }
+
+        // 6) commit
+        this._map = newMap;
     }
 
     @Override
     public void drawCircle(Pixel2D center, double rad, int color) {
+        if (center == null) {
+            throw new RuntimeException("center is null");
+        }
+        if (rad < 0) {
+            throw new RuntimeException("rad is negative: " + rad);
+        }
+        if (this._map == null) {
+            throw new RuntimeException("map is null");
+        }
 
+    int cx = center.getX();
+    int cy = center.getY();
+    double r2 = rad*rad;
+
+    for(int x=0;x<this.getWidth();x++) {
+        for (int y = 0; y<this.getHeight(); y++){
+            long dx = (long) x-cx;
+            long dy = (long) y-cy;
+            long dist = dx*dx+dy*dy;
+            if(dist<=r2){
+                setPixel(x,y,color);
+            }
+            }
+        }
     }
 
     @Override
     public void drawLine(Pixel2D p1, Pixel2D p2, int color) {
-
+        if (isInside(p1)&&isInside(p2)) {
+            int dx = Math.abs(p2.getX() - p1.getX());
+            int dy = Math.abs(p2.getY() - p1.getY());
+        }
     }
 
     @Override
