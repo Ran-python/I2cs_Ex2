@@ -276,22 +276,108 @@ private int [][] _map ;
 
     @Override
     public void drawLine(Pixel2D p1, Pixel2D p2, int color) {
-        if (isInside(p1)&&isInside(p2)) {
-            int dx = Math.abs(p2.getX() - p1.getX());
-            int dy = Math.abs(p2.getY() - p1.getY());
+        //   if (this.isInside(p1)&&this.isInside(p2)) {
+            int x1 = p1.getX();
+            int x2 = p2.getX();
+            int y1 = p1.getY();
+            int y2 = p2.getY();
+
+            if (p1.equals(p2)){
+                setPixel(x1,y1,color);
+            return;
+            }
+
+        int dx = Math.abs(x2 - x1);
+        int dy = Math.abs(y2 - y1);
+
+        if(dx>=dy){
+                if (x1>x2){
+                    int tempX = x1;
+                    int tempY = y1;
+                    x1=x2;
+                    y1=y2;
+                    x2=tempX;
+                    y2=tempY;
+                }
+                double m = (double) (y2 - y1) /(double) (x2 - x1);
+                for (int x=x1;x<=x2;x++){
+                    double yReal = y1 + m * (x - x1);
+                    int y = (int) Math.round(yReal);
+                    setPixel(x,y,color);
+            }
+            } else{
+            if(y1>y2){
+                int tempX = x1;
+                int tempY = y1;
+                x1=x2;
+                y1=y2;
+                x2=tempX;
+                y2=tempY;
+                dx = Math.abs(x2 - x1);
+                dy = Math.abs(y2 - y1);
+            }
+                double k = (double) (x2 - x1) /(double) (y2 - y1);
+                for (int y=y1;y<=y2;y++) {
+                    double xReal = x1 + k * (y - y1);
+                    int x = (int) Math.round(xReal);
+                    setPixel(x, y, color);
+                }
+        }
+    }
+
+
+    @Override
+    public void drawRect(Pixel2D p1, Pixel2D p2, int color) {
+        if (p1 == null || p2 == null) {
+            throw new RuntimeException("p1 or p2 is null");
+        }
+        if (!this.isInside(p1)||!this.isInside(p2)) {
+            throw new RuntimeException("p1 or p2 is out of bounds");
+        }
+
+        int x1 = p1.getX();
+        int x2 = p2.getX();
+        int y1 = p1.getY();
+        int y2 = p2.getY();
+
+        if(x1<x2){
+            int tempX=x1;
+            x1=x2;
+            x2=tempX;
+        }
+        if(y1<y2){
+            int tempY=y1;
+            y1=y2;
+            y2=tempY;
+        }
+        for (int x=x2;x<=x1;x++){
+            for (int y=y2;y<=y1;y++){
+                setPixel(x,y,color);
+            }
         }
     }
 
     @Override
-    public void drawRect(Pixel2D p1, Pixel2D p2, int color) {
-
-    }
-
-    @Override
     public boolean equals(Object ob) {
-        boolean ans = false;
+        if(this == ob){
+            return true;
+        }
+        if (!(ob instanceof Map)){
+            return false;
+        }
+        Map other = (Map) ob;
+        if(!this.sameDimensions(other)){
+            return false;
+        }
+        for(int x =0; x<this.getWidth();x++) {
+            for (int y = 0; y < this.getHeight(); y++) {
+            if (this._map[x][y] != other._map[x][y]){
+                return false;
+                    }
+                }
+            }
 
-        return ans;
+        return true;
     }
 	@Override
 	/** 
