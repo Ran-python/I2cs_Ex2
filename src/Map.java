@@ -30,6 +30,17 @@ private int [][] _map ;
 	public Map(int[][] data) {
 		init(data);
 	}
+
+    /**
+     * Initializes the internal matrix to the given dimensions and fills every entry with v.
+     * Existing data is discarded. Both dimensions must be strictly positive.
+     *
+     * @param w desired width (number of columns)
+     * @param h desired height (number of rows)
+     * @param v value assigned to every cell in the map
+     * @throws RuntimeException if { w <= 0} or { h <= 0}
+     */
+
 	@Override
 	public void init(int w, int h, int v) {
         if (w <= 0 || h <= 0) {
@@ -44,6 +55,15 @@ private int [][] _map ;
             }
         }
 	}
+
+    /**
+     * Initializes this map by deep-copying the provided 2D array.
+     * Rejects null inputs, empty arrays, or ragged arrays where rows differ in length.
+     *
+     * @param arr source matrix to copy
+     * @throws RuntimeException for null, empty, or ragged inputs
+     */
+
 	@Override
 	public void init(int[][] arr) {
         // check null
@@ -74,6 +94,14 @@ private int [][] _map ;
             }
         }
     }
+
+    /**
+     * Returns a deep copy of the underlying map to preserve encapsulation.
+     * If the map has not been initialized, {null} is returned.
+     *
+     * @return deep copy of the current map or {null} if uninitialized
+     */
+
 	@Override
 	public int[][] getMap() {
         if (this._map == null) {
@@ -93,16 +121,39 @@ private int [][] _map ;
 
 		return deepCopy;
 	}
+
+    /**
+     * Reports the current width (number of columns) of the map.
+     * Assumes the map has been initialized beforehand.
+     *
+     * @return map width
+     */
+
 	@Override
 	public int getWidth() {
         return this._map.length;
     }
 
+    /**
+     * Reports the current height (number of rows) of the map.
+     * Assumes the map has been initialized beforehand.
+     *
+     * @return map height
+     */
+
 	@Override
 	public int getHeight() {
         return this._map[0].length;
     }
-   // x are rows and y are columns
+
+    /**
+     * Retrieves the value stored at the coordinate ({x},{y}).
+     * Coordinates must be within bounds or a {RuntimeException} is thrown.
+     *
+     * @param x column index
+     * @param y row index
+     * @return value stored at the requested coordinate
+     */
 	@Override
 	public int getPixel(int x, int y) {
         if(x<0 || y<0 || x>=this.getWidth() || y>= this.getHeight()){
@@ -110,6 +161,15 @@ private int [][] _map ;
         }
         return this._map[x][y];
     }
+
+    /**
+     * Retrieves the value stored at the provided coordinate.
+     * A null pixel or an out-of-bounds coordinate will raise a RuntimeException.
+     *
+     * @param p coordinate to read
+     * @return value stored at {p}
+     */
+
 	@Override
 	public int getPixel(Pixel2D p) {
         if (p==null) {
@@ -123,6 +183,15 @@ private int [][] _map ;
         // Index2D other = (Index2D) p;
         return this._map[p.getX()][p.getY()];
     }
+    /**
+     * Writes {v} into the coordinate ({x},{y}).
+     * Requires the map to be initialized and the coordinates to be valid.
+     *
+     * @param x column index to modify
+     * @param y row index to modify
+     * @param v value to assign
+     * @throws RuntimeException when the map is uninitialized or indices are out of bounds
+     */
 
 	@Override
 	public void setPixel(int x, int y, int v) {
@@ -140,6 +209,14 @@ private int [][] _map ;
         this._map[x][y] = v;
     }
 
+    /**
+     * Writes {v} into the coordinate represented by {p}.
+     * Null inputs or out-of-bounds coordinates result in a {RuntimeException}.
+     *
+     * @param p coordinate to modify
+     * @param v value to assign
+     */
+
 	@Override
 	public void setPixel(Pixel2D p, int v) {
         if (p==null) {
@@ -152,6 +229,14 @@ private int [][] _map ;
         this._map[p.getX()][p.getY()] = v;
 	}
 
+    /**
+     * Checks whether the given coordinate lies within the current map bounds.
+     *
+     * @param p coordinate to test
+     * @return {true} if the coordinate is valid for this map, {false} otherwise
+     * @throws RuntimeException when {p} is null
+     */
+
     @Override
     public boolean isInside(Pixel2D p) {
         if (p == null) {
@@ -163,6 +248,15 @@ private int [][] _map ;
         }
         return true;
     }
+
+    /**
+     * Compares this map's width and height with another {Map2D}.
+     *
+     * @param p map to compare against
+     * @return {true} when both dimensions match; {false} otherwise
+     * @throws RuntimeException if {p} is null
+     */
+
     @Override
     public boolean sameDimensions(Map2D p) {
     if (p==null){
@@ -176,6 +270,14 @@ private int [][] _map ;
         return ph == th && pw == tw;
     }
 
+    /**
+     * Adds the values of another map element-wise into this map when dimensions match.
+     * If dimensions differ, this method leaves the current map unchanged.
+     *
+     * @param p map whose values should be added into this one
+     * @throws RuntimeException if {p} is null
+     */
+
     @Override
     public void addMap2D(Map2D p) {
     if (!this.sameDimensions(p)){
@@ -188,6 +290,12 @@ private int [][] _map ;
     }
     }
 
+    /**
+     * Multiplies every entry in the map by {scalar}, casting results to integers.
+     *
+     * @param scalar scaling factor to apply
+     */
+
     @Override
     public void mul(double scalar) {
         for(int x =0; x<this.getWidth();x++) {
@@ -197,6 +305,15 @@ private int [][] _map ;
         }
     }
 
+    /**
+     * Rescales the map using nearest-neighbor sampling.
+     * New dimensions are computed by rounding {width * sx} and {height * sy}; both scale factors must be positive.
+     *
+     * @param sx horizontal scale factor
+     * @param sy vertical scale factor
+     * @throws IllegalArgumentException if either scale factor is non-positive
+     */
+
     @Override
     public void rescale(double sx, double sy) {
         // 1) validate
@@ -204,30 +321,18 @@ private int [][] _map ;
             throw new IllegalArgumentException("Scale factors must be positive: sx=" + sx + ", sy=" + sy);
         }
         if (this._map == null) {
-            // אין מה לשנות
             return;
         }
 
         int oldW = getWidth();
         int oldH = getHeight();
-
-        // 2) compute new size (use round to match "100*1.2 = 120" nicely)
         int newW = (int) Math.round(oldW * sx);
         int newH = (int) Math.round(oldH * sy);
-
-        // avoid zero-sized maps
         if (newW <= 0) newW = 1;
         if (newH <= 0) newH = 1;
-
-        // 3) keep old data
-        int[][] oldMap = this._map; // אפשר גם getMap(), אבל זה יוצר העתקה מיותרת
-
-        // 4) allocate new map
+        int[][] oldMap = this._map;
         int[][] newMap = new int[newW][newH];
 
-        // 5) nearest-neighbor mapping:
-        // new[x][y] comes from old[ floor(x/sx) ][ floor(y/sy) ]
-        // clamp to avoid out-of-bounds due to rounding edge cases
         for (int x = 0; x < newW; x++) {
             int ox = (int) Math.floor(x / sx);
             if (ox < 0) ox = 0;
@@ -241,10 +346,17 @@ private int [][] _map ;
                 newMap[x][y] = oldMap[ox][oy];
             }
         }
-
-        // 6) commit
         this._map = newMap;
     }
+
+    /**
+     * Colors all pixels whose squared distance from {center} is less than or equal to {rad^2}.
+     * Requires a non-null center, non-negative radius, and an initialized map.
+     *
+     * @param center circle center
+     * @param rad radius of the circle (inclusive)
+     * @param color value to write into affected pixels
+     */
 
     @Override
     public void drawCircle(Pixel2D center, double rad, int color) {
@@ -273,6 +385,15 @@ private int [][] _map ;
             }
         }
     }
+
+    /**
+     * Draws a straight line between {p1} and {p2} using a simple slope-based rasterization.
+     * Both endpoints are included; if the points are identical, only a single pixel is colored.
+     *
+     * @param p1 starting point of the line
+     * @param p2 ending point of the line
+     * @param color value to write into the line pixels
+     */
 
     @Override
     public void drawLine(Pixel2D p1, Pixel2D p2, int color) {
@@ -325,6 +446,14 @@ private int [][] _map ;
         }
     }
 
+    /**
+     * Fills the rectangle spanned by {p1} and {p2} (inclusive) with {color}.
+     * Both points must be inside the map, otherwise a {RuntimeException} is thrown.
+     *
+     * @param p1 one corner of the rectangle
+     * @param p2 opposite corner of the rectangle
+     * @param color value to apply to every pixel within the rectangle
+     */
 
     @Override
     public void drawRect(Pixel2D p1, Pixel2D p2, int color) {
@@ -356,6 +485,13 @@ private int [][] _map ;
             }
         }
     }
+
+    /**
+     * Compares this map with another object for equality based on dimensions and cell values.
+     *
+     * @param ob object to compare
+     * @return {true} when {ob} is a {Map} with identical dimensions and contents
+     */
 
     @Override
     public boolean equals(Object ob) {
@@ -440,9 +576,17 @@ private int [][] _map ;
 
     @Override
 	/**
-	 * BFS like shortest the computation based on iterative raster implementation of BFS, see:
-	 * https://en.wikipedia.org/wiki/Breadth-first_search
-	 */
+     * Computes the shortest valid path between {p1} and {p2} while avoiding pixels marked {obsColor}.
+     * Uses a BFS-based distance map generated by {allDistance(Pixel2D, int, boolean)} and reconstructs the path
+     * by walking backward from the destination. Returns {null} if either endpoint is an obstacle
+     * or no valid path exists.
+     *
+     * @param p1 starting point
+     * @param p2 destination point
+     * @param obsColor value treated as an obstacle
+     * @param cyclic whether the map wraps around its borders
+     * @return array of consecutive pixels from {p1} to {p2}, or {null} when unreachable
+     */
 	public Pixel2D[] shortestPath(Pixel2D p1, Pixel2D p2, int obsColor, boolean cyclic) {
         if (p1 == null||p2==null){
             throw new RuntimeException("p1 or p2 is null");
@@ -520,6 +664,17 @@ private int [][] _map ;
 
         return path;
     }
+
+    /**
+     * Builds a map of shortest-path distances from {start} to every accessible pixel,
+     * treating {obsColor} as an obstacle. Unreachable pixels are marked with {-1}.
+     * The computation uses a queue-based BFS over 4-neighborhood connectivity.
+     *
+     * @param start starting coordinate
+     * @param obsColor value representing an obstacle
+     * @param cyclic whether coordinates wrap across borders
+     * @return new {Map2D} of the same size containing distances or {-1} for unreachable entries
+     */
 
     @Override
     public Map2D allDistance(Pixel2D start, int obsColor, boolean cyclic) {
@@ -651,10 +806,15 @@ private int [][] _map ;
         return count;
     }
 
-/**
- * Wraps a coordinate into the range [0, limit-1].
- */
-private int wrap(int value, int limit) {
+
+     /**
+     * Wraps a coordinate into the range {@code [0, limit-1]} to support cyclic behavior.
+     * @param value coordinate that may be outside the map
+     * @param limit upper bound (exclusive) of the axis length
+     * @return wrapped coordinate within valid bounds
+     */
+
+    private int wrap(int value, int limit) {
     if (value < 0) {
         return limit - 1;
     }
