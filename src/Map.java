@@ -379,27 +379,99 @@ private int [][] _map ;
 
         return true;
     }
+
 	@Override
 	/** 
 	 * Fills this map with the new color (new_v) starting from p.
-	 * https://en.wikipedia.org/wiki/Flood_fill
-	 */
+	 *
+     *  Fills (paints) the connected component of a given pixel with a new color.
+     *
+     *  The connected component of a pixel p consists of all pixels that:
+     *  - have the same original color as p
+     *  - are connected to p using 4-neighbors (up, down, left, right)
+     *
+     *  If cyclic is true, the map is treated as cyclic (crossing one border enters
+     *  from the opposite side). If cyclic is false, pixels outside the map are ignored
+     *  and the starting pixel must be inside the map.
+     *
+     *  If the color of the starting pixel is already new_v, no filling is performed
+     *  and the method returns 0.
+     *
+     *  @param xy the starting pixel for the fill operation
+     *  @param new_v the new color to apply
+     *  @param cyclic true if the map is cyclic, false otherwise
+     *  @return the number of pixels that were filled
+     */
+
 	public int fill(Pixel2D xy, int new_v,  boolean cyclic) {
-		int ans = -1;
+        if (xy == null) {
+            throw new RuntimeException("pixel is null");
+        }
+        if (this._map == null) {
+            throw new RuntimeException("map is null");
+        }
 
-		return ans;
-	}
+        int w = getWidth();
+        int h = getHeight();
 
-	@Override
+        int x = xy.getX();
+        int y = xy.getY();
+
+        // אם לא מחזורי - חייב להיות בתוך המפה
+        if (!cyclic) {
+            if (!this.isInside(xy)) {
+                throw new RuntimeException("out of bounds");
+            }
+        } else {
+            // מחזורי: עיטוף נקודת התחלה (מספיק step אחד כי השכנים הם ±1)
+            if (x < 0) x = w - 1;
+            if (x >= w) x = 0;
+            if (y < 0) y = h - 1;
+            if (y >= h) y = 0;
+        }
+
+        int oldColor = this._map[x][y];
+        if (oldColor == new_v) {
+            return 0;
+        }
+
+        return fillDfs(x, y, oldColor, new_v, cyclic);
+    }
+
+    @Override
 	/**
 	 * BFS like shortest the computation based on iterative raster implementation of BFS, see:
 	 * https://en.wikipedia.org/wiki/Breadth-first_search
 	 */
 	public Pixel2D[] shortestPath(Pixel2D p1, Pixel2D p2, int obsColor, boolean cyclic) {
-		Pixel2D[] ans = null;  // the result.
+        if (p1 == null||p2==null){
+            throw new RuntimeException("p1 or p2 is null");
+        }
+        int w = getWidth();
+        int h = getHeight();
 
-		return ans;
-	}
+        int x1 = p1.getX();
+        int y1 = p1.getY();
+        int x2 = p2.getX();
+        int y2 = p2.getY();
+
+        if (!cyclic) {
+            if (!this.isInside(p1) || !this.isInside(p2)) {
+                throw new RuntimeException("out of bounds");
+            }
+        }else{
+            if (x1 < 0) x1 = w - 1;
+            if (x1 >= w) x1 = 0;
+            if (x2 < 0) x2 = w - 1;
+            if (x2 >= w) x2 = 0;
+            if (y1 < 0) y1 = h - 1;
+            if (y1 >= h) y1 = 0;
+            if (y2 < 0) y2 = h - 1;
+            if (y2 >= h) y2 = 0;
+        }
+
+        return new Pixel2D[0];
+    }
     @Override
     public Map2D allDistance(Pixel2D start, int obsColor, boolean cyclic) {
         Map2D ans = null;  // the result.
@@ -407,5 +479,58 @@ private int [][] _map ;
         return ans;
     }
 	////////////////////// Private Methods ///////////////////////
+
+    /**
+     * Recursively fills the connected component using a depth-first search (DFS).
+     *
+     * Starting from the pixel at coordinates (x, y), this method:
+     * - checks boundary conditions (or wraps coordinates if cyclic is true)
+     * - verifies that the pixel has the original color oldColor
+     * - paints the pixel with the new color new_v
+     * - continues the fill process on the four neighboring pixels
+     *
+     * The coloring itself is used as a "visited" marker to prevent infinite recursion.
+     *
+     * @param x the x-coordinate of the current pixel
+     * @param y the y-coordinate of the current pixel
+     * @param oldColor the original color of the connected component
+     * @param new_v the new color to apply
+     * @param cyclic true if the map is cyclic, false otherwise
+     * @return the number of pixels filled by this call and its recursive calls
+     */
+    private int fillDfs(int x, int y, int oldColor, int new_v, boolean cyclic) {
+        int w = getWidth();
+        int h = getHeight();
+
+        // עטיפה / בדיקת גבולות
+        if (cyclic) {
+            if (x < 0) x = w - 1;
+            if (x >= w) x = 0;
+            if (y < 0) y = h - 1;
+            if (y >= h) y = 0;
+        } else {
+            if (x < 0 || x >= w || y < 0 || y >= h) {
+                return 0;
+            }
+        }
+
+        // אם זה לא הצבע המקורי - לא שייך לרכיב המחובר
+        if (this._map[x][y] != oldColor) {
+            return 0;
+        }
+
+        // צביעה = סימון visited
+        this._map[x][y] = new_v;
+        int count = 1;
+
+        // 4 שכנים
+        count += fillDfs(x + 1, y, oldColor, new_v, cyclic);
+        count += fillDfs(x - 1, y, oldColor, new_v, cyclic);
+        count += fillDfs(x, y + 1, oldColor, new_v, cyclic);
+        count += fillDfs(x, y - 1, oldColor, new_v, cyclic);
+
+        return count;
+    }
+
 
 }
