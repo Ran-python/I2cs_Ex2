@@ -775,8 +775,7 @@ private int [][] _map ;
     private int fillDfs(int x, int y, int oldColor, int new_v, boolean cyclic) {
         int w = getWidth();
         int h = getHeight();
-
-        // עטיפה / בדיקת גבולות
+        
         if (cyclic) {
             if (x < 0) x = w - 1;
             if (x >= w) x = 0;
@@ -788,16 +787,13 @@ private int [][] _map ;
             }
         }
 
-        // אם זה לא הצבע המקורי - לא שייך לרכיב המחובר
         if (this._map[x][y] != oldColor) {
             return 0;
         }
 
-        // צביעה = סימון visited
         this._map[x][y] = new_v;
         int count = 1;
 
-        // 4 שכנים
         count += fillDfs(x + 1, y, oldColor, new_v, cyclic);
         count += fillDfs(x - 1, y, oldColor, new_v, cyclic);
         count += fillDfs(x, y + 1, oldColor, new_v, cyclic);
