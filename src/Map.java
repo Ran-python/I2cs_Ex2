@@ -460,24 +460,143 @@ private int [][] _map ;
                 throw new RuntimeException("out of bounds");
             }
         }else{
-            if (x1 < 0) x1 = w - 1;
-            if (x1 >= w) x1 = 0;
-            if (x2 < 0) x2 = w - 1;
-            if (x2 >= w) x2 = 0;
-            if (y1 < 0) y1 = h - 1;
-            if (y1 >= h) y1 = 0;
-            if (y2 < 0) y2 = h - 1;
-            if (y2 >= h) y2 = 0;
+            x1 = wrap(x1, w);
+            y1 = wrap(y1, h);
+            x2 = wrap(x2, w);
+            y2 = wrap(y2, h);
         }
 
-        return new Pixel2D[0];
+        if (_map[x1][y1] == obsColor || _map[x2][y2] == obsColor) {
+            return null;
+        }
+
+        Map2D distMap = allDistance(new Index2D(x1, y1), obsColor, cyclic);
+        int endDist = distMap.getPixel(x2, y2);
+        if (endDist < 0) {
+            return null;
+        }
+
+        Pixel2D[] path = new Pixel2D[endDist + 1];
+        int cx = x2;
+        int cy = y2;
+        int currDist = endDist;
+
+        int[] dx = {1, -1, 0, 0};
+        int[] dy = {0, 0, 1, -1};
+
+        while (currDist >= 0) {
+            path[currDist] = new Index2D(cx, cy);
+            if (currDist == 0) {
+                break;
+            }
+
+            boolean foundPrev = false;
+            for (int k = 0; k < 4 && !foundPrev; k++) {
+                int nx = cx + dx[k];
+                int ny = cy + dy[k];
+
+                if (cyclic) {
+                    nx = wrap(nx, w);
+                    ny = wrap(ny, h);
+                } else {
+                    if (nx < 0 || nx >= w || ny < 0 || ny >= h) {
+                        continue;
+                    }
+                }
+
+                if (distMap.getPixel(nx, ny) == currDist - 1) {
+                    cx = nx;
+                    cy = ny;
+                    currDist--;
+                    foundPrev = true;
+                }
+            }
+
+            if (!foundPrev) {
+                // Should not happen if distances are consistent
+                return null;
+            }
+        }
+
+        return path;
     }
+
     @Override
     public Map2D allDistance(Pixel2D start, int obsColor, boolean cyclic) {
-        Map2D ans = null;  // the result.
+        if (start == null) {
+            throw new RuntimeException("start is null");
+        }
 
-        return ans;
+        int w = getWidth();
+        int h = getHeight();
+        int sx = start.getX();
+        int sy = start.getY();
+
+        if (!cyclic) {
+            if (!isInside(start)) {
+                throw new RuntimeException("start out of bounds");
+            }
+        } else {
+            sx = wrap(sx, w);
+            sy = wrap(sy, h);
+        }
+
+        Map result = new Map(w, h, -1);
+        if (_map[sx][sy] == obsColor) {
+            return result;
+        }
+
+        int[][] dist = result._map;
+
+        int maxSize = w * h;
+        int[] qx = new int[maxSize];
+        int[] qy = new int[maxSize];
+        int head = 0;
+        int tail = 0;
+
+        dist[sx][sy] = 0;
+        qx[tail] = sx;
+        qy[tail] = sy;
+        tail++;
+
+        int[] dx = {1, -1, 0, 0};
+        int[] dy = {0, 0, 1, -1};
+
+        while (head < tail) {
+            int cx = qx[head];
+            int cy = qy[head];
+            head++;
+
+            for (int k = 0; k < 4; k++) {
+                int nx = cx + dx[k];
+                int ny = cy + dy[k];
+
+                if (cyclic) {
+                    nx = wrap(nx, w);
+                    ny = wrap(ny, h);
+                } else {
+                    if (nx < 0 || nx >= w || ny < 0 || ny >= h) {
+                        continue;
+                    }
+                }
+
+                if (_map[nx][ny] == obsColor) {
+                    continue;
+                }
+                if (dist[nx][ny] != -1) {
+                    continue;
+                }
+
+                dist[nx][ny] = dist[cx][cy] + 1;
+                qx[tail] = nx;
+                qy[tail] = ny;
+                tail++;
+            }
+        }
+
+        return result;
     }
+
 	////////////////////// Private Methods ///////////////////////
 
     /**
@@ -532,5 +651,17 @@ private int [][] _map ;
         return count;
     }
 
+/**
+ * Wraps a coordinate into the range [0, limit-1].
+ */
+private int wrap(int value, int limit) {
+    if (value < 0) {
+        return limit - 1;
+    }
+    if (value >= limit) {
+        return 0;
+    }
+    return value;
+}
 
 }
