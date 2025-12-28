@@ -58,6 +58,7 @@ The GUI (`Ex2_GUI`) lets you interactively edit maps and run algorithms:
 - Toggle cyclic mode (press `C`) to wrap paths and fills across edges.
 - Use the action menu to run flood fill or visualize shortest paths; paths are drawn as colored overlays.
 - Load and save maps from simple text files (`w h` header followed by rows of integers).
+- GUI is using the package StdDraw
 
 Closest path visualization:
 
