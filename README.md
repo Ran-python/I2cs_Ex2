@@ -7,21 +7,6 @@
 ## Overview
 This exercise combines foundational object-oriented programming with classic breadth-first-search (BFS) algorithms on a 2D grid. The codebase provides a reusable `Map` implementation, visualization tools, and test coverage so you can explore pathfinding, region detection, and drawing utilities on raster-style maps.
 
-## Quick start
-1. Compile the sources:
-   ```bash
-   javac src/*.java
-   ```
-2. Run the GUI on the default map:
-   ```bash
-   java -cp src Ex2_GUI
-   ```
-3. Run the JUnit tests (requires JUnit on the classpath):
-   ```bash
-   javac -cp ".:src:junit-4.13.2.jar:hamcrest-core-1.3.jar" src/*.java
-   java  -cp ".:src:junit-4.13.2.jar:hamcrest-core-1.3.jar" org.junit.runner.JUnitCore MapTest Index2DTest
-   ```
-
 ## Project structure
 - `Map2D.java`, `Pixel2D.java` – Interfaces that define the 2D grid contract.
 - `Index2D.java` – Concrete pixel implementation used throughout the project.
@@ -77,7 +62,7 @@ The GUI (`Ex2_GUI`) lets you interactively edit maps and run algorithms:
 Closest path visualization:
 
 <img width="1048" height="976" alt="image" src="https://github.com/user-attachments/assets/0f19b876-c365-45c3-9e3b-110be2224554" />
-# Note for image - green represent the shortest path, black represents the obsticles.
+Note for image - green represent the shortest path, black represents the obsticles.
 
 ## Testing
 - Unit tests: `MapTest.java` covers map operations and algorithms; `Index2DTest.java` validates pixel utilities.
