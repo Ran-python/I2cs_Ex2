@@ -53,12 +53,60 @@ public class Ex2_GUI {
         run();
     }
 
-    // ---------- entry ----------
+    public static Map2D loadMap(String mapFileName) {
+        Map2D ans = null;
+        try (Scanner scanner = new Scanner(new File(mapFileName))) {
+            if (!scanner.hasNextInt()) return null;
+            int w = scanner.nextInt();
+            if (!scanner.hasNextInt()) return null;
+            int h = scanner.nextInt();
+
+            int[][] data = new int[w][h];
+            for (int y = 0; y < h; y++) {
+                for (int x = 0; x < w; x++) {
+                    if (!scanner.hasNextInt()) return null;
+                    data[x][y] = scanner.nextInt();
+                }
+            }
+            ans = new Map(data);
+        } catch (FileNotFoundException e) {
+            System.err.println("Map file not found: " + mapFileName);
+        }
+        return ans;
+    }
+
+    /**
+     * Save a map as text:
+     * first line: "w h"
+     * then h lines, each line has w ints (row-major by y, then x).
+     */
+    public static void saveMap(Map2D map, String mapFileName) {
+        if (map == null) return;
+
+        try (PrintWriter out = new PrintWriter(mapFileName)) {
+            int w = map.getWidth();
+            int h = map.getHeight();
+            out.println(w + " " + h);
+            for (int y = 0; y < h; y++) {
+                StringBuilder row = new StringBuilder();
+                for (int x = 0; x < w; x++) {
+                    row.append(map.getPixel(x, y)).append(' ');
+                }
+                out.println(row.toString().trim());
+            }
+        } catch (FileNotFoundException e) {
+            System.err.println("Failed to save map to " + mapFileName);
+        }
+    }
+
+
     public static void main(String[] args) {
         Map2D loaded = loadMap(DEFAULT_MAP_FILE);
         drawMap(loaded);
     }
 
+    /// ///////////// Private functions ///////////////
+    ///
     // ---------- main loop ----------
     private static void run() {
         boolean prevMouse = false;
@@ -167,10 +215,15 @@ public class Ex2_GUI {
     }
 
     private static void drawPathOverlay() {
-        for (PathStroke s : paintedPaths) {
+        for (int i = 0; i < paintedPaths.size(); i++) {
+            PathStroke s = paintedPaths.get(i);
             if (s == null || s.path == null) continue;
+
             StdDraw.setPenColor(colorFor(s.colorValue));
-            for (Pixel2D p : s.path) {
+
+            for (int j = 0; j < s.path.length; j++) {
+                Pixel2D p = s.path[j];
+                if (p == null) continue;
                 StdDraw.filledSquare(p.getX() + 0.5, p.getY() + 0.5, 0.5);
             }
         }
@@ -395,50 +448,4 @@ public class Ex2_GUI {
 
     private record PathStroke(Pixel2D[] path, int colorValue) { }
 
-    // ---------- file helpers ----------
-    public static Map2D loadMap(String mapFileName) {
-        Map2D ans = null;
-        try (Scanner scanner = new Scanner(new File(mapFileName))) {
-            if (!scanner.hasNextInt()) return null;
-            int w = scanner.nextInt();
-            if (!scanner.hasNextInt()) return null;
-            int h = scanner.nextInt();
-
-            int[][] data = new int[w][h];
-            for (int y = 0; y < h; y++) {
-                for (int x = 0; x < w; x++) {
-                    if (!scanner.hasNextInt()) return null;
-                    data[x][y] = scanner.nextInt();
-                }
-            }
-            ans = new Map(data);
-        } catch (FileNotFoundException e) {
-            System.err.println("Map file not found: " + mapFileName);
-        }
-        return ans;
-    }
-
-    /**
-     * Save a map as text:
-     * first line: "w h"
-     * then h lines, each line has w ints (row-major by y, then x).
-     */
-    public static void saveMap(Map2D map, String mapFileName) {
-        if (map == null) return;
-
-        try (PrintWriter out = new PrintWriter(mapFileName)) {
-            int w = map.getWidth();
-            int h = map.getHeight();
-            out.println(w + " " + h);
-            for (int y = 0; y < h; y++) {
-                StringBuilder row = new StringBuilder();
-                for (int x = 0; x < w; x++) {
-                    row.append(map.getPixel(x, y)).append(' ');
-                }
-                out.println(row.toString().trim());
-            }
-        } catch (FileNotFoundException e) {
-            System.err.println("Failed to save map to " + mapFileName);
-        }
-    }
 }
